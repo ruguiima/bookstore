@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>上传图书 - 图书商城</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .upload-container{width:min(720px,94vw);margin:2rem auto;background:rgba(11,17,32,.75);border:1px solid var(--border);border-radius:1rem;padding:1.2rem;box-shadow:var(--shadow);}
+    .upload-form{display:grid;gap:.9rem;}
+    .upload-form .row{display:grid;gap:.45rem;}
+    .upload-form input[type=text],
+    .upload-form input[type=number],
+    .upload-form input[type=file],
+    .upload-form textarea{border:1px solid var(--border);background:#0b1120;color:var(--text);border-radius:.6rem;padding:.65rem .75rem;font-size:.95rem;}
+    .upload-form textarea{min-height:120px;resize:vertical;}
+    .actions{display:flex;gap:.8rem;margin-top:.6rem;}
+    .status{margin-top:.6rem;font-size:.9rem;min-height:1.2rem;}
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-logo">📚</span><span class="brand-name">图书商城</span></div>
+  <div></div>
+  <div class="header-actions">
+    <a class="link" href="/index">返回首页</a>
+  </div>
+</header>
+<main class="upload-container">
+  <h1 style="margin:.2rem 0 1rem;font-size:1.3rem;">上传图书</h1>
+  <form id="bookUploadForm" class="upload-form" enctype="multipart/form-data">
+    <div class="row">
+      <label for="title">标题（必填）</label>
+      <input id="title" name="title" type="text" required placeholder="请输入图书标题" />
+    </div>
+    <div class="row">
+      <label for="author">作者（可空）</label>
+      <input id="author" name="author" type="text" placeholder="作者" />
+    </div>
+    <div class="row">
+      <label for="category">分类（可空）</label>
+      <input id="category" name="category" type="text" placeholder="分类" />
+    </div>
+    <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;">
+      <div class="row"><label for="price">现价（可空）</label><input id="price" name="price" type="number" step="0.01" min="0" placeholder="现价" /></div>
+      <div class="row"><label for="originalPrice">原价（可空）</label><input id="originalPrice" name="originalPrice" type="number" step="0.01" min="0" placeholder="原价" /></div>
+      <div class="row"><label for="rating">评分（0-5，可空）</label><input id="rating" name="rating" type="number" step="0.1" min="0" max="5" placeholder="评分" /></div>
+    </div>
+    <div class="row">
+      <label for="keywords">关键词（可空，使用逗号或空格分隔）</label>
+      <input id="keywords" name="keywords" type="text" placeholder="例如: Java, 并发" />
+    </div>
+    <div class="row">
+      <label for="desc">简介（可空）</label>
+      <textarea id="desc" name="desc" placeholder="图书简介"></textarea>
+    </div>
+    <div class="row">
+      <label for="cover">封面（可空）</label>
+      <input id="cover" name="cover" type="file" accept="image/*" />
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">提交</button>
+      <button type="reset" class="btn">重置</button>
+    </div>
+    <div id="status" class="status"></div>
+  </form>
+</main>
+<script>
+  const form = document.getElementById('bookUploadForm');
+  const statusEl = document.getElementById('status');
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    statusEl.textContent = '正在提交...';
+    const fd = new FormData(form);
+    try {
+      const resp = await fetch('/api/books',{method:'POST',body:fd});
+      if(!resp.ok){ statusEl.textContent='提交失败 ('+resp.status+')'; return; }
+      const data = await resp.json();
+      statusEl.textContent = '上传成功，ID='+data.id+'。刷新首页即可查看。';
+      form.reset();
+    }catch(err){
+      console.error(err);
+      statusEl.textContent='提交异常，请稍后再试。';
+    }
+  });
+</script>
+</body>
+</html>
+

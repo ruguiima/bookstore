@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户登录 - 图书商城</title>
+  <meta name="description" content="图书商城系统 - 用户登录静态页" />
+  <!-- 使用 Spring Boot 静态资源路径 -->
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='14' fill='%231e88e5'/%3E%3Cpath fill='%23fff' d='M25 25h38a12 12 0 0 1 12 12v38H37a12 12 0 0 1-12-12V25z'/%3E%3Cpath fill='%23bbdefb' d='M25 25h8a12 12 0 0 1 12 12v38h-8a12 12 0 0 1-12-12V25z'/%3E%3C/svg%3E" />
+</head>
+<body class="auth-page">
+  <header class="header">
+    <div class="brand" role="banner" aria-label="图书商城">
+      <!-- 改为通过路由返回首页 -->
+      <a class="brand-logo" href="/" aria-label="返回首页">📚</a>
+      <a class="brand-name" href="/">图书商城</a>
+    </div>
+    <div></div>
+    <div class="header-actions">
+      <a class="link" href="/">返回首页</a>
+    </div>
+  </header>
+
+  <main class="auth-wrapper">
+    <section class="auth-card" aria-label="登录表单">
+      <h1 class="auth-title">登录</h1>
+      <p class="muted" style="margin-top:-.4rem">欢迎回来，请使用账户登录</p>
+
+      <!-- 表单仍是前端校验，不做真正登录逻辑 -->
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="account">邮箱或用户名</label>
+          <input id="account" name="account" type="text" autocomplete="username" required placeholder="例如：user@example.com 或 yourname" />
+          <small class="error" id="accountError" aria-live="polite"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">密码</label>
+          <div class="password-field">
+            <input id="password" name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="不少于 6 位" />
+            <button type="button" id="togglePwd" class="btn-icon" aria-label="显示或隐藏密码">👁️</button>
+          </div>
+          <small class="error" id="passwordError" aria-live="polite"></small>
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox">
+            <input id="remember" type="checkbox" /> 记住我
+          </label>
+          <a href="#" class="link">忘记密码？</a>
+        </div>
+
+        <button id="submitBtn" type="submit" class="btn-primary" style="width:100%">登录</button>
+        <p id="formMsg" class="muted" aria-live="polite" style="text-align:center;margin:.6rem 0 0"></p>
+      </form>
+
+      <!-- 注册入口暂时也不做逻辑，只是一个占位链接，可后续映射到 /register -->
+      <p class="muted" style="text-align:center;margin-top:1rem">还没有账号？<a class="link" href="#">去注册</a></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> 图书商城. 仅为演示的前端静态页面，无后端服务。</p>
+  </footer>
+
+  <!-- 使用 Spring Boot 静态资源路径 -->
+  <script src="/login.js" defer></script>
+</body>
+</html>

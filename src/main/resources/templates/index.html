@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图书商城 - 图书列表</title>
+  <meta name="description" content="图书商城系统 - 图书列表" />
+  <!-- 使用 Spring Boot 静态资源路径 -->
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='14' fill='%231e88e5'/%3E%3Cpath fill='%23fff' d='M25 25h38a12 12 0 0 1 12 12v38H37a12 12 0 0 1-12-12V25z'/%3E%3Cpath fill='%23bbdefb' d='M25 25h8a12 12 0 0 1 12 12v38h-8a12 12 0 0 1-12-12V25z'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand" role="banner" aria-label="图书商城">
+      <span class="brand-logo" aria-hidden="true">📚</span>
+      <span class="brand-name">图书商城</span>
+    </div>
+
+    <form id="searchForm" class="search" role="search" aria-label="图书搜索">
+      <input id="searchInput" type="search" placeholder="搜索书名、作者、关键词…" aria-label="搜索图书" />
+      <button type="submit" aria-label="执行搜索">搜索</button>
+    </form>
+
+    <div class="header-actions">
+      <a class="link" href="/upload" aria-label="上传图书">上传图书</a>
+      <!-- 改为通过路由访问登录页 -->
+      <a class="link" href="/login" aria-label="前往登录">登录</a>
+      <button class="cart" id="cartBtn" aria-label="购物车">
+        🛒 <span id="cartCount" class="badge" aria-live="polite">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <aside class="filters" aria-label="筛选">
+      <h2>筛选</h2>
+
+      <section>
+        <h3>价格区间</h3>
+        <div class="price-range">
+          <input type="number" id="priceMin" placeholder="最低价" min="0" step="1" aria-label="最低价" />
+          <span class="sep">—</span>
+          <input type="number" id="priceMax" placeholder="最高价" min="0" step="1" aria-label="最高价" />
+          <button id="priceApply" class="btn-small">应用</button>
+        </div>
+      </section>
+
+      <section>
+        <h3>评分</h3>
+        <div class="checkbox-list" id="ratingGroup" role="radiogroup" aria-label="最低评分">
+          <label><input type="radio" name="ratingFilter" value="0" checked /> 不限</label>
+          <label><input type="radio" name="ratingFilter" value="3" /> 3星及以上</label>
+          <label><input type="radio" name="ratingFilter" value="4" /> 4星及以上</label>
+          <label><input type="radio" name="ratingFilter" value="4.5" /> 4.5星及以上</label>
+        </div>
+      </section>
+    </aside>
+
+    <section class="content" aria-live="polite">
+      <div class="toolbar">
+        <div class="left">
+          <label for="sortSelect">排序：</label>
+          <select id="sortSelect">
+            <option value="relevance">默认排序</option>
+            <option value="priceAsc">价格从低到高</option>
+            <option value="priceDesc">价格从高到低</option>
+            <option value="ratingDesc">评分优先</option>
+            <option value="titleAsc">书名A-Z</option>
+          </select>
+        </div>
+        <div class="right">
+          <label for="pageSize">每页：</label>
+          <select id="pageSize">
+            <option value="8">8</option>
+            <option value="12" selected>12</option>
+            <option value="24">24</option>
+            <option value="48">48</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="resultMeta" class="result-meta">正在加载…</div>
+
+      <ul id="bookGrid" class="grid" aria-label="图书列表">
+        <!-- 动态渲染图书卡片 -->
+      </ul>
+
+      <nav id="pagination" class="pagination" aria-label="分页">
+        <!-- 动态渲染分页按钮 -->
+      </nav>
+    </section>
+  </main>
+
+  <dialog id="detailDialog" class="dialog">
+    <div class="dialog-content" role="document">
+      <button id="dialogClose" class="dialog-close" aria-label="关闭">×</button>
+      <div class="dialog-body">
+        <img id="detailCover" alt="封面" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+        <div class="dialog-info">
+          <h3 id="detailTitle"></h3>
+          <p class="muted" id="detailAuthor"></p>
+          <p id="detailRating"></p>
+          <p class="price"><span id="detailPrice"></span> <s id="detailOrigin" class="muted"></s></p>
+          <p id="detailDesc" class="desc"></p>
+          <button id="detailAdd" class="btn-primary">加入购物车</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> 图书商城.</p>
+  </footer>
+
+  <!-- 使用 Spring Boot 静态资源路径 -->
+  <script src="/app.js" defer></script>
+</body>
+</html>
