@@ -41,14 +41,14 @@ public interface BookMapper {
     int insert(Book book);
 
     @Update("""
-            UPDATE book SET 
-            title = #{title}, 
-            author = #{author}, 
-            category = #{category}, 
-            price = #{price}, 
-            original_price = #{originalPrice}, 
-            rating = #{rating}, 
-            description = #{description}, 
+            UPDATE book SET
+            title = #{title},
+            author = #{author},
+            category = #{category},
+            price = #{price},
+            original_price = #{originalPrice},
+            rating = #{rating},
+            description = #{description},
             keywords = #{keywords, typeHandler=com.ruguiima.bookstore.repository.handler.StringListTypeHandler},
             cover = #{cover}
             WHERE id = #{id}

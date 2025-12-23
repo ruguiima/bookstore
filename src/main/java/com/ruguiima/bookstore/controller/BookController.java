@@ -23,6 +23,15 @@ public class BookController {
         return bookService.readAll();
     }
 
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        Book book = bookService.findById(id);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(book);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> createBook(@ModelAttribute BookCreateRequest req,
                                            @RequestParam(value = "cover", required = false) MultipartFile cover) {
@@ -56,3 +65,4 @@ public class BookController {
         return ResponseEntity.ok().build();
     }
 }
+

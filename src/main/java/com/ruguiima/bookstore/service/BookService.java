@@ -33,7 +33,10 @@ public class BookService {
     public List<Book> readAll() {
         return mapper.findAll();
     }
-
+    public Book findById(Long id) {
+        if (id == null) return null;
+        return mapper.findById(id.intValue());
+    }
     // 使用 DTO 精简参数
     public synchronized Book createBook(BookCreateRequest req, MultipartFile coverFile) {
         String title = req.getTitle();

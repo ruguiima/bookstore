@@ -350,17 +350,16 @@ document.addEventListener('alpine:init', () => {
       this.loading = true;
       this.error = '';
       try {
-        const resp = await fetch('/api/books');
+        const resp = await fetch(`/api/books/${this.bookId}`);
         if (!resp.ok) {
-          this.error = '加载图书信息失败';
+          if (resp.status === 404) {
+            this.error = '图书不存在';
+          } else {
+            this.error = '加载图书信息失败';
+          }
           return;
         }
-        const books = await resp.json();
-        const book = books.find(b => b.id == this.bookId);
-        if (!book) {
-          this.error = '图书不存在';
-          return;
-        }
+        const book = await resp.json();
 
         // 填充表单
         this.book = {
