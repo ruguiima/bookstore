@@ -102,6 +102,12 @@ a { color: inherit; text-decoration: none; }
   border-radius: .5rem; width: 2rem; height: 2rem; cursor: pointer;
 }
 .dialog-body { position: relative; display: contents; }
+.detail-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1rem 0 0 1rem;
+}
 .dialog-info {
   padding: 1rem; display: grid; align-content: start; gap: .5rem;
 }

@@ -23,4 +23,10 @@ public class HomeController {
         // 返回上传页面
         return "upload";
     }
+
+    @GetMapping("/edit/{id}")
+    public String editBook() {
+        // 返回修改图书页面，复用upload.html
+        return "edit";
+    }
 }

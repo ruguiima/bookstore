@@ -18,7 +18,7 @@ public class Book {
     private Double price;          // 可空
     private Double originalPrice;  // 可空
     private Double rating;         // 可空 (0-5)
-    private String desc;           // 可空
+    private String description;    // 可空
     @Singular("keyword")
     private List<String> keywords; // 可空
     private String cover;          // 可空(图片路径)

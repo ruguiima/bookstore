@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN" x-data="editApp" x-init="init()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>修改图书 - 图书商城</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .upload-container{width:min(720px,94vw);margin:2rem auto;background:rgba(11,17,32,.75);border:1px solid var(--border);border-radius:1rem;padding:1.2rem;box-shadow:var(--shadow);}
+    .upload-form{display:grid;gap:.9rem;}
+    .upload-form .row{display:grid;gap:.45rem;}
+    .upload-form input[type=text],
+    .upload-form input[type=number],
+    .upload-form input[type=file],
+    .upload-form textarea{border:1px solid var(--border);background:#0b1120;color:var(--text);border-radius:.6rem;padding:.65rem .75rem;font-size:.95rem;}
+    .upload-form textarea{min-height:120px;resize:vertical;}
+    .actions{display:flex;gap:.8rem;margin-top:.6rem;}
+    .status{margin-top:.6rem;font-size:.9rem;min-height:1.2rem;}
+    .current-cover{margin-top:0.5rem;max-width:200px;border-radius:0.5rem;}
+  </style>
+  <script defer src="/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-logo">📚</span><span class="brand-name">图书商城</span></div>
+  <div></div>
+  <div class="header-actions">
+    <a class="link" href="/index">返回首页</a>
+  </div>
+</header>
+<main class="upload-container">
+  <h1 style="margin:.2rem 0 1rem;font-size:1.3rem;">修改图书</h1>
+  <div x-show="loading" class="status">正在加载图书信息...</div>
+  <div x-show="error" class="status" x-text="error" style="color: #ef4444;"></div>
+  <form class="upload-form" enctype="multipart/form-data" @submit.prevent="submit" x-show="!loading && !error">
+    <div class="row">
+      <label for="title">标题（必填）</label>
+      <input id="title" name="title" type="text" required placeholder="请输入图书标题" x-model="book.title" />
+    </div>
+    <div class="row">
+      <label for="author">作者（可空）</label>
+      <input id="author" name="author" type="text" placeholder="作者" x-model="book.author" />
+    </div>
+    <div class="row">
+      <label for="category">分类（可空）</label>
+      <input id="category" name="category" type="text" placeholder="分类" x-model="book.category" />
+    </div>
+    <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;">
+      <div class="row"><label for="price">现价（可空）</label><input id="price" name="price" type="number" step="0.01" min="0" placeholder="现价" x-model="book.price" /></div>
+      <div class="row"><label for="originalPrice">原价（可空）</label><input id="originalPrice" name="originalPrice" type="number" step="0.01" min="0" placeholder="原价" x-model="book.originalPrice" /></div>
+      <div class="row"><label for="rating">评分（0-5，可空）</label><input id="rating" name="rating" type="number" step="0.1" min="0" max="5" placeholder="评分" x-model="book.rating" /></div>
+    </div>
+    <div class="row">
+      <label for="keywords">关键词（可空，使用逗号或空格分隔）</label>
+      <input id="keywords" name="keywords" type="text" placeholder="例如: Java, 并发" x-model="book.keywords" />
+    </div>
+    <div class="row">
+      <label for="desc">简介（可空）</label>
+      <textarea id="desc" name="desc" placeholder="图书简介" x-model="book.description"></textarea>
+    </div>
+    <div class="row">
+      <label for="cover">封面（可空，不选择则保持原封面）</label>
+      <input id="cover" name="cover" type="file" accept="image/*" />
+      <div x-show="book.cover" style="margin-top:0.5rem;">
+        <p style="font-size:0.9rem;color:var(--muted);">当前封面:</p>
+        <img :src="book.cover" alt="当前封面" class="current-cover" />
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary" :disabled="submitting">保存修改</button>
+      <button type="button" class="btn" @click="window.history.back()" :disabled="submitting">取消</button>
+    </div>
+    <div class="status" x-text="status"></div>
+  </form>
+</main>
+</body>
+</html>
+

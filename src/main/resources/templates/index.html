@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" x-data="bookApp" x-init="init()" xmlns:x="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>图书商城 - 图书列表</title>
   <meta name="description" content="图书商城系统 - 图书列表" />
-  <!-- 使用 Spring Boot 静态资源路径 -->
   <link rel="stylesheet" href="/styles.css" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='14' fill='%231e88e5'/%3E%3Cpath fill='%23fff' d='M25 25h38a12 12 0 0 1 12 12v38H37a12 12 0 0 1-12-12V25z'/%3E%3Cpath fill='%23bbdefb' d='M25 25h8a12 12 0 0 1 12 12v38h-8a12 12 0 0 1-12-12V25z'/%3E%3C/svg%3E" />
+  <script defer src="/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
   <header class="header">
@@ -16,17 +17,16 @@
       <span class="brand-name">图书商城</span>
     </div>
 
-    <form id="searchForm" class="search" role="search" aria-label="图书搜索">
-      <input id="searchInput" type="search" placeholder="搜索书名、作者、关键词…" aria-label="搜索图书" />
+    <form class="search" role="search" aria-label="图书搜索" @submit.prevent="applySearch">
+      <input type="search" placeholder="搜索书名、作者、关键词…" aria-label="搜索图书" x-model="search" />
       <button type="submit" aria-label="执行搜索">搜索</button>
     </form>
 
     <div class="header-actions">
       <a class="link" href="/upload" aria-label="上传图书">上传图书</a>
-      <!-- 改为通过路由访问登录页 -->
       <a class="link" href="/login" aria-label="前往登录">登录</a>
-      <button class="cart" id="cartBtn" aria-label="购物车">
-        🛒 <span id="cartCount" class="badge" aria-live="polite">0</span>
+      <button class="cart" aria-label="购物车" @click.prevent="alert('演示用：仅计数，无购物车页面。')">
+        🛒 <span class="badge" aria-live="polite" x-text="cart"></span>
       </button>
     </div>
   </header>
@@ -38,20 +38,20 @@
       <section>
         <h3>价格区间</h3>
         <div class="price-range">
-          <input type="number" id="priceMin" placeholder="最低价" min="0" step="1" aria-label="最低价" />
+          <input type="number" placeholder="最低价" min="0" step="1" aria-label="最低价" x-model="priceMin" />
           <span class="sep">—</span>
-          <input type="number" id="priceMax" placeholder="最高价" min="0" step="1" aria-label="最高价" />
-          <button id="priceApply" class="btn-small">应用</button>
+          <input type="number" placeholder="最高价" min="0" step="1" aria-label="最高价" x-model="priceMax" />
+          <button class="btn-small" @click.prevent="applyPriceRange">应用</button>
         </div>
       </section>
 
       <section>
         <h3>评分</h3>
-        <div class="checkbox-list" id="ratingGroup" role="radiogroup" aria-label="最低评分">
-          <label><input type="radio" name="ratingFilter" value="0" checked /> 不限</label>
-          <label><input type="radio" name="ratingFilter" value="3" /> 3星及以上</label>
-          <label><input type="radio" name="ratingFilter" value="4" /> 4星及以上</label>
-          <label><input type="radio" name="ratingFilter" value="4.5" /> 4.5星及以上</label>
+        <div class="checkbox-list" role="radiogroup" aria-label="最低评分">
+          <label><input type="radio" name="ratingFilter" value="all" x-model="rating"> 不限</label>
+          <label><input type="radio" name="ratingFilter" value="gte3" x-model="rating"> 3星及以上</label>
+          <label><input type="radio" name="ratingFilter" value="gte4" x-model="rating"> 4星及以上</label>
+          <label><input type="radio" name="ratingFilter" value="gte4_5" x-model="rating"> 4.5星及以上</label>
         </div>
       </section>
     </aside>
@@ -60,7 +60,7 @@
       <div class="toolbar">
         <div class="left">
           <label for="sortSelect">排序：</label>
-          <select id="sortSelect">
+          <select id="sortSelect" x-model="sortBy" @change="changeSort(sortBy)">
             <option value="relevance">默认排序</option>
             <option value="priceAsc">价格从低到高</option>
             <option value="priceDesc">价格从高到低</option>
@@ -70,49 +70,80 @@
         </div>
         <div class="right">
           <label for="pageSize">每页：</label>
-          <select id="pageSize">
+          <select id="pageSize" x-model.number="pageSize" @change="changePageSize(pageSize)">
             <option value="8">8</option>
-            <option value="12" selected>12</option>
+            <option value="12">12</option>
             <option value="24">24</option>
             <option value="48">48</option>
           </select>
         </div>
       </div>
 
-      <div id="resultMeta" class="result-meta">正在加载…</div>
+      <div id="resultMeta" class="result-meta" x-text="loading ? '正在加载…' : (error || `共 ${meta.total} 本 · 第 ${meta.page}/${meta.pages} 页`)"></div>
+
+      <template x-if="error">
+        <div class="error" x-text="error"></div>
+      </template>
 
       <ul id="bookGrid" class="grid" aria-label="图书列表">
-        <!-- 动态渲染图书卡片 -->
+        <template x-if="!loading && meta.list.length === 0 && !error">
+          <div class="result-meta">暂无图书数据。</div>
+        </template>
+        <template x-for="book in meta.list" :key="book.id">
+          <li class="card">
+            <div class="cover-wrap">
+              <img class="cover" :src="book.cover" :alt="book.title + ' 封面'" />
+            </div>
+            <div class="card-body">
+              <h4 class="title" x-text="book.title || '未命名图书'"></h4>
+              <p class="author" x-text="[book.author, book.category].filter(Boolean).join(' · ') || '未知'"></p>
+              <div class="rating" aria-label="评分" x-html="book.rating != null ? `${star(book.rating)} <span class='muted'>(${Number(book.rating).toFixed(1)})</span>` : '<span class=\'muted\'>暂无评分</span>'"></div>
+              <div class="price">
+                <span x-text="book.price != null ? price(book.price) : '—'"></span>
+                <s class="muted" x-text="book.originalPrice != null ? price(book.originalPrice) : ''"></s>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="btn" @click="openDetail(book)">详情</button>
+              <button class="btn-primary" @click="addToCart">加入购物车</button>
+            </div>
+          </li>
+        </template>
       </ul>
 
-      <nav id="pagination" class="pagination" aria-label="分页">
-        <!-- 动态渲染分页按钮 -->
+      <nav id="pagination" class="pagination" aria-label="分页" x-show="meta.pages > 1">
+        <button class="page-btn" :disabled="meta.page === 1" @click="go(meta.page - 1)">上一页</button>
+        <template x-for="p in meta.pages" :key="p">
+          <button class="page-btn" :aria-current="p === meta.page ? 'page' : null" :class="{'active': p === meta.page}" @click="go(p)" x-text="p"></button>
+        </template>
+        <button class="page-btn" :disabled="meta.page === meta.pages" @click="go(meta.page + 1)">下一页</button>
       </nav>
     </section>
   </main>
 
-  <dialog id="detailDialog" class="dialog">
+  <dialog id="detailDialog" class="dialog" @click.self="closeDetail" x-transition>
     <div class="dialog-content" role="document">
-      <button id="dialogClose" class="dialog-close" aria-label="关闭">×</button>
+      <button class="dialog-close" aria-label="关闭" @click="closeDetail">×</button>
       <div class="dialog-body">
-        <img id="detailCover" alt="封面" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+        <img :src="detailBook?.cover" alt="封面" class="detail-cover" />
         <div class="dialog-info">
-          <h3 id="detailTitle"></h3>
-          <p class="muted" id="detailAuthor"></p>
-          <p id="detailRating"></p>
-          <p class="price"><span id="detailPrice"></span> <s id="detailOrigin" class="muted"></s></p>
-          <p id="detailDesc" class="desc"></p>
-          <button id="detailAdd" class="btn-primary">加入购物车</button>
+          <h3 x-text="detailBook?.title"></h3>
+          <p class="muted" x-text="[detailBook?.author, detailBook?.category].filter(Boolean).join(' · ') || '未知'"></p>
+          <p x-html="detailBook?.rating != null ? `${star(detailBook.rating)} <span class='muted'>(${Number(detailBook.rating).toFixed(1)})</span>` : '<span class=\'muted\'>暂无评分</span>'"></p>
+          <p class="price"><span x-text="detailBook?.price != null ? price(detailBook.price) : '—'"></span> <s class="muted" x-text="detailBook?.originalPrice != null ? price(detailBook.originalPrice) : ''"></s></p>
+          <p class="desc" x-text="detailBook?.description || '暂无简介。'"></p>
+          <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+            <button class="btn-primary" @click="addToCart">加入购物车</button>
+            <button class="btn" @click="editBook(detailBook)" style="background: #0369a1; color: white;">修改详情</button>
+            <button class="btn" @click="deleteBook(detailBook)" style="background: #dc2626; color: white;">删除图书</button>
+          </div>
         </div>
       </div>
     </div>
   </dialog>
 
   <footer class="footer">
-    <p>© <span id="year"></span> 图书商城.</p>
+    <p>© <span x-text="year"></span> 图书商城.</p>
   </footer>
-
-  <!-- 使用 Spring Boot 静态资源路径 -->
-  <script src="/app.js" defer></script>
 </body>
 </html>

@@ -2,7 +2,7 @@ package com.ruguiima.bookstore.service;
 
 import com.ruguiima.bookstore.model.entity.Book;
 import com.ruguiima.bookstore.model.dto.BookCreateRequest;
-import com.ruguiima.bookstore.repository.BookRepository;
+import com.ruguiima.bookstore.repository.BookMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +18,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class BookService {
-    private final BookRepository repository;
+    private final BookMapper mapper;
 
     // 封面源文件保存目录（源码资源）
     private Path imageDir() {
@@ -31,7 +31,7 @@ public class BookService {
 
     // 读取全部图书（兼容旧命名 readAll）
     public List<Book> readAll() {
-        return repository.findAll();
+        return mapper.findAll();
     }
 
     // 使用 DTO 精简参数
@@ -40,22 +40,92 @@ public class BookService {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("标题不能为空");
         }
-        List<Book> all = repository.findAll();
-        int nextId = all.stream().map(Book::getId)
-                                 .filter(Objects::nonNull)
-                                 .mapToInt(Integer::intValue)
-                                 .max().orElse(0) + 1;
-
         Double price = parseDouble(req.getPrice());
         Double originalPrice = parseDouble(req.getOriginalPrice());
         Double rating = normalizeRating(parseDouble(req.getRating()));
         List<String> keywords = parseKeywords(req.getKeywords());
-        String coverPath = saveCoverIfPresent(nextId, coverFile);
 
-        Book created = new Book(nextId, title.trim(), req.getAuthor(),
-                                req.getCategory(), price, originalPrice,
-                                rating, req.getDesc(), keywords, coverPath);
-        return repository.save(created);
+        // 先构建 Book（ID 由数据库生成）
+        Book created = Book.builder()
+                .title(title.trim())
+                .author(req.getAuthor())
+                .category(req.getCategory())
+                .price(price)
+                .originalPrice(originalPrice)
+                .rating(rating)
+                .description(req.getDesc())
+                .keywords(keywords)
+                .build();
+
+        // 预先保存封面文件需要 ID，故先插入获取 ID，再更新封面字段
+        mapper.insert(created);
+        String coverPath = saveCoverIfPresent(created.getId(), coverFile);
+        if (coverPath != null) {
+            mapper.updateCover(created.getId(), coverPath);
+            created.setCover(coverPath);
+        }
+        return created;
+    }
+
+    // 更新图书信息
+    public synchronized Book updateBook(Long id, BookCreateRequest req, MultipartFile coverFile) {
+        if (id == null) return null;
+
+        // 检查图书是否存在
+        Book existing = mapper.findById(id.intValue());
+        if (existing == null) return null;
+
+        String title = req.getTitle();
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("标题不能为空");
+        }
+        Double price = parseDouble(req.getPrice());
+        Double originalPrice = parseDouble(req.getOriginalPrice());
+        Double rating = normalizeRating(parseDouble(req.getRating()));
+        List<String> keywords = parseKeywords(req.getKeywords());
+
+        // 处理封面逻辑
+        String coverPath = existing.getCover(); // 默认保持原有封面
+
+        // 如果上传了新封面，保存并更新封面路径
+        String newCoverPath = saveCoverIfPresent(id.intValue(), coverFile);
+        if (newCoverPath != null) {
+            coverPath = newCoverPath; // 使用新封面
+        }
+
+        // 构建更新的图书对象
+        Book updated = Book.builder()
+                .id(id.intValue())
+                .title(title.trim())
+                .author(req.getAuthor())
+                .category(req.getCategory())
+                .price(price)
+                .originalPrice(originalPrice)
+                .rating(rating)
+                .description(req.getDesc())
+                .keywords(keywords)
+                .cover(coverPath) // 使用处理后的封面路径
+                .build();
+
+
+        mapper.update(updated);
+        return updated;
+    }
+
+    // 删除图书
+    public synchronized boolean deleteBook(Long id) {
+        if (id == null) return false;
+
+        Book existing = mapper.findById(id.intValue());
+        if (existing == null) return false;
+
+        // 删除图书记录
+        mapper.deleteById(id.intValue());
+
+        // 可以选择删除对应的封面文件，这里先保留文件
+        // TODO: 如果需要删除文件，可以在这里添加文件删除逻辑
+
+        return true;
     }
 
     // 保存封面：写入源码与运行时目录，返回可访问路径；失败返回 null
@@ -64,7 +134,14 @@ public class BookService {
         try {
             Files.createDirectories(imageDir());
             Files.createDirectories(runtimeImageDir());
-            String ext = extName(Objects.requireNonNull(coverFile.getOriginalFilename()));
+
+            // 安全处理文件名，避免NullPointerException
+            String originalFilename = coverFile.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                originalFilename = "cover.jpg"; // 提供默认文件名
+            }
+
+            String ext = extName(originalFilename);
             String fileName = "book_" + id + "_" + Instant.now().toEpochMilli() + ext;
             Path targetSrc = imageDir().resolve(fileName);
             Path targetRuntime = runtimeImageDir().resolve(fileName);
@@ -77,6 +154,7 @@ public class BookService {
             return "/image/" + fileName;
         } catch (Exception ex) {
             System.err.println("保存封面失败: " + ex.getMessage());
+            ex.printStackTrace(); // 添加更详细的错误信息
             return null;
         }
     }
