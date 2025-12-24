@@ -2,7 +2,7 @@ package com.ruguiima.bookstore.service;
 
 import com.ruguiima.bookstore.model.entity.Book;
 import com.ruguiima.bookstore.model.dto.BookCreateRequest;
-import com.ruguiima.bookstore.repository.BookMapper;
+import com.ruguiima.bookstore.mapper.BookMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -157,7 +157,6 @@ public class BookService {
             return "/image/" + fileName;
         } catch (Exception ex) {
             System.err.println("保存封面失败: " + ex.getMessage());
-            ex.printStackTrace(); // 添加更详细的错误信息
             return null;
         }
     }

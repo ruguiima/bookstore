@@ -1,15 +1,11 @@
-package com.ruguiima.bookstore.repository;
+package com.ruguiima.bookstore.mapper;
 
 import com.ruguiima.bookstore.model.entity.Book;
-import com.ruguiima.bookstore.repository.handler.StringListTypeHandler;
+import com.ruguiima.bookstore.mapper.handler.StringListTypeHandler;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
-/**
- * Book数据访问层Mapper接口
- * 注意：SQL中的'book'表在应用启动时通过schema.sql创建，IDE可能无法静态解析
- */
 @Mapper
 public interface BookMapper {
     @Select("SELECT * FROM book ORDER BY id")
@@ -33,7 +29,7 @@ public interface BookMapper {
             original_price = #{originalPrice},
             rating         = #{rating},
             description    = #{description},
-            keywords       = #{keywords, typeHandler=com.ruguiima.bookstore.repository.handler.StringListTypeHandler},
+            keywords       = #{keywords, typeHandler=com.ruguiima.bookstore.mapper.handler.StringListTypeHandler},
             cover          = #{cover}
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -49,7 +45,7 @@ public interface BookMapper {
             original_price = #{originalPrice},
             rating = #{rating},
             description = #{description},
-            keywords = #{keywords, typeHandler=com.ruguiima.bookstore.repository.handler.StringListTypeHandler},
+            keywords = #{keywords, typeHandler=com.ruguiima.bookstore.mapper.handler.StringListTypeHandler},
             cover = #{cover}
             WHERE id = #{id}
             """)

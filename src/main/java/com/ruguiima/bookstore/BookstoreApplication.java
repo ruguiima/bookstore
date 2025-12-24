@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.ruguiima.bookstore.repository")
+@MapperScan("com.ruguiima.bookstore.mapper")
 public class BookstoreApplication {
 
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package com.ruguiima.bookstore.repository.handler;
+package com.ruguiima.bookstore.mapper.handler;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
